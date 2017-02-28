@@ -46,7 +46,7 @@ def load(input_data, key_is_name=False):
     if ExifIFD.InteroperabilityTag in exif_dict["Exif"]:
         pointer = exif_dict["Exif"][ExifIFD.InteroperabilityTag]
         exif_dict["Interop"] = exifReader.get_ifd_dict(pointer, "Interop")
-    if first_ifd_pointer != b"\x00\x00\x00\x00":
+    if first_ifd_pointer and first_ifd_pointer != b"\x00\x00\x00\x00":
         pointer = struct.unpack(exifReader.endian_mark + "L",
                                 first_ifd_pointer)[0]
         exif_dict["1st"] = exifReader.get_ifd_dict(pointer, "1st")
@@ -95,6 +95,10 @@ class _ExifReader(object):
 
     def get_ifd_dict(self, pointer, ifd_name, read_unknown=False):
         ifd_dict = {}
+
+        if pointer > len(self.tiftag):
+            return ifd_dict
+
         tag_count = struct.unpack(self.endian_mark + "H",
                                   self.tiftag[pointer: pointer+2])[0]
         offset = pointer + 2
